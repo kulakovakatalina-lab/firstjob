@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Виджет «Первая работа» — Прототип</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: linear-gradient(145deg, #dbeeff 0%, #eef6ff 40%, #e8f5e9 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1A1A1A;
+  }
+
+  /* ─── APP WRAPPER ─── */
+  .widget-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  .widget-frame {
+    width: 390px;
+    max-width: 100%;
+    max-height: 95vh;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    position: relative;
+  }
+
+  /* ─── WIDGET INNER ─── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .screen.active { display: flex; }
+
+  /* Widget header bar */
+  .wbar {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #F0F2F5;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .wbar-back {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #F5F7FA;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #6B7280;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .wbar-back:hover { background: #E5E7EB; }
+
+  .wbar-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1A1A1A;
+    flex: 1;
+  }
+
+  .wbar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: #279BF0;
+  }
+
+  .wbar-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #9CA3AF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+
+  .wbar-close:hover { background: #F5F7FA; }
+
+  /* Scroll body */
+  .wbody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Typography */
+  .w-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .w-subheading {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    height: 48px;
+    background: #279BF0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-primary:hover { background: #1a8ad8; }
+  .btn-primary:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    height: 48px;
+    background: #F5F7FA;
+    color: #1A1A1A;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-secondary:hover { background: #E5E7EB; }
+
+  .btn-link {
+    width: 100%;
+    height: 36px;
+    background: none;
+    border: none;
+    color: #9CA3AF;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .btn-link:hover { color: #6B7280; }
+
+  .btn-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+  /* ─── SCREEN 1: AUTH ─── */
+  .phone-input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .phone-input {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .phone-input:focus {
+    border-color: #279BF0;
+    box-shadow: 0 0 0 3px rgba(39,155,240,0.15);
+  }
+
+  .sms-fields {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    justify-content: center;
+  }
+
+  .sms-digit {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #D1D5DB;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    color: #1A1A1A;
+  }
+
+  .sms-digit:focus {
+    border-color: #279BF0;
+    box-shadow: 0 0 0 3px rgba(39,155,240,0.15);
+  }
+
+  .sms-digit.filled { border-color: #279BF0; }
+
+  .sms-hint {
+    text-align: center;
+    font-size: 13px;
+    color: #6B7280;
+    margin-bottom: 8px;
+  }
+
+  .sms-resend {
+    text-align: center;
+    font-size: 13px;
+    color: #9CA3AF;
+    margin-bottom: 20px;
+  }
+
+  .sms-resend span { color: #279BF0; cursor: pointer; }
+
+  /* ─── SCREEN 2: FILTERS ─── */
+  .filter-progress {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .filter-progress-seg {
+    height: 4px;
+    flex: 1;
+    background: #E5E7EB;
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+
+  .filter-progress-seg.done { background: #279BF0; }
+
+  .filter-counter {
+    font-size: 13px;
+    font-weight: 600;
+    color: #279BF0;
+    background: rgba(39,155,240,0.16);
+    padding: 3px 10px;
+    border-radius: 20px;
+    transition: all 0.3s;
+    text-align: center;
+    width: fit-content;
+    margin: 0 auto 8px;
+  }
+
+  .city-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    padding: 8px 14px;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    background: #fff;
+    color: #1A1A1A;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .chip:hover { border-color: #279BF0; color: #279BF0; }
+  .chip.selected { background: rgba(39,155,240,0.16); color: #1A1A1A; border-color: #279BF0; }
+
+  .sphere-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .sphere-card {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 14px 12px;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.15s;
+    text-align: left;
+    user-select: none;
+  }
+
+  .sphere-card:hover { border-color: #279BF0; background: rgba(39,155,240,0.16); }
+  .sphere-card.selected { border-color: #279BF0; background: rgba(39,155,240,0.16); }
+
+  .sphere-card-emoji { font-size: 22px; margin-bottom: 4px; display: block; }
+  .sphere-card-label { font-size: 13px; font-weight: 500; color: #1A1A1A; }
+
+  .schedule-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .schedule-chip {
+    padding: 12px 16px;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #fff;
+    color: #1A1A1A;
+    transition: all 0.15s;
+    text-align: left;
+    user-select: none;
+  }
+
+  .schedule-chip:hover { border-color: #279BF0; color: #279BF0; }
+  .schedule-chip.selected { background: rgba(39,155,240,0.16); color: #1A1A1A; border-color: #279BF0; }
+
+  .salary-wrap { margin-bottom: 24px; }
+
+  .salary-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .salary-value span { font-size: 16px; font-weight: 500; color: #6B7280; }
+
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #279BF0 0%, #279BF0 var(--pct, 37.5%), #E5E7EB var(--pct, 37.5%), #E5E7EB 100%);
+    border-radius: 2px;
+    outline: none;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #279BF0;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+
+  .salary-hint {
+    font-size: 13px;
+    color: #6B7280;
+    margin-top: 6px;
+  }
+
+  .salary-warning {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #92400E;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .salary-warning.show { display: block; }
+
+  .filter-step { display: none; }
+  .filter-step.active { display: block; }
+
+  /* ─── SCREEN 3: CONTRACT ─── */
+  .contract-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .contract-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(39,155,240,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .contract-arrow { color: #9CA3AF; font-size: 16px; }
+
+  .contract-items { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+
+  .contract-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #F5F7FA;
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .contract-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(39,155,240,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .contract-item-text strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .contract-item-text p { font-size: 13px; color: #6B7280; line-height: 1.4; }
+
+  /* ─── SCREEN 4: DAY 1 ─── */
+  .apply-progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .apply-progress-label { font-size: 13px; color: #6B7280; }
+  .apply-progress-count { font-size: 13px; font-weight: 600; color: #279BF0; }
+
+  .apply-progress-bar {
+    height: 6px;
+    background: #E5E7EB;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .apply-progress-fill {
+    height: 100%;
+    background: #279BF0;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .vac-card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .vac-card.fly-out {
+    transform: translateX(-60px) scale(0.96);
+    opacity: 0;
+  }
+
+  .vac-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .vac-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: rgba(39,155,240,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    font-weight: 800;
+    color: #279BF0;
+    font-size: 18px;
+  }
+
+  .vac-card-title { font-size: 16px; font-weight: 600; color: #1A1A1A; margin-bottom: 2px; }
+  .vac-card-company { font-size: 13px; color: #6B7280; }
+
+  .vac-card-salary { font-size: 17px; font-weight: 700; color: #1A1A1A; margin-bottom: 8px; }
+  .vac-card-meta { font-size: 13px; color: #6B7280; margin-bottom: 10px; }
+
+  .vac-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vac-badge {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .vac-badge.green { border-color: #22c55e; color: #15803d; background: #fff; }
+  .vac-badge.blue  { border-color: #E5E7EB; color: #6B7280; background: #fff; }
+  .vac-badge.gray  { border-color: #E5E7EB; color: #6B7280; background: #fff; }
+
+  .apply-success {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .apply-success.show { display: flex; }
+
+  .success-circle {
+    width: 80px;
+    height: 80px;
+    background: rgba(36,181,99,.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+    animation: popIn 0.4s ease;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ─── SCREEN 5: STATUSES ─── */
+  .status-vac-item {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #fff;
+  }
+
+  .status-vac-name { font-size: 14px; font-weight: 600; color: #1A1A1A; margin-bottom: 8px; }
+  .status-vac-company { font-size: 12px; color: #6B7280; margin-bottom: 10px; }
+
+  .status-btns { display: flex; gap: 8px; }
+
+  .status-btn {
+    flex: 1;
+    height: 36px;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #fff;
+    color: #6B7280;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    user-select: none;
+  }
+
+  .status-btn:hover { border-color: #9CA3AF; }
+  .status-btn.sel-called { background: rgba(36,181,99,.08); border-color: #22c55e; color: #15803d; }
+  .status-btn.sel-silent { background: rgba(112,102,242,.08); border-color: #a5b4fc; color: #4338ca; }
+  .status-btn.sel-reject { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+
+  .status-done-btn { display: none; }
+  .status-done-btn.show { display: flex; }
+
+  /* ─── SCREEN 6: PLAN ─── */
+  .funnel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .funnel-cell {
+    background: #F5F7FA;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .funnel-cell.green { background: rgba(36,181,99,.08); }
+  .funnel-cell.purple { background: rgba(112,102,242,.08); }
+
+  .funnel-cell-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+  .funnel-cell-num { font-size: 28px; font-weight: 800; color: #1A1A1A; display: block; margin-bottom: 2px; }
+  .funnel-cell-label { font-size: 11px; color: #6B7280; line-height: 1.3; }
+
+  .strategy-box {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .strategy-box strong { display: block; font-size: 15px; font-weight: 700; color: #92400E; margin-bottom: 4px; }
+  .strategy-box p { font-size: 13px; color: #78350F; line-height: 1.5; }
+
+  /* ─── SCREEN 7: INTERVIEW PREP ─── */
+  .prep-company {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #F5F7FA;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+
+  .prep-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(39,155,240,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #279BF0;
+    font-size: 16px;
+  }
+
+  .prep-company-name { font-size: 14px; font-weight: 600; }
+  .prep-company-role { font-size: 12px; color: #6B7280; }
+
+  .accordion-item {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .accordion-header {
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .accordion-header:hover { background: #F5F7FA; }
+  .accordion-header.open { background: rgba(39,155,240,0.16); color: #279BF0; }
+
+  .accordion-arrow {
+    transition: transform 0.2s;
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  .accordion-header.open .accordion-arrow { transform: rotate(180deg); }
+
+  .accordion-body {
+    display: none;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+    background: #FAFBFF;
+    border-top: 1px solid #E5E7EB;
+  }
+
+  .accordion-body.open { display: block; }
+  .accordion-body strong { color: #279BF0; }
+
+  /* ─── MISC ─── */
+  .divider { height: 1px; background: #F0F2F5; margin: 16px 0; }
+
+  .mt-auto { margin-top: auto; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+
+  .checkmark-anim {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #10B981;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 14px;
+    margin-left: 8px;
+    animation: popIn 0.3s ease;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 440px) {
+    .widget-frame { border-radius: 0; height: 100vh; max-height: 100vh; }
+    .widget-overlay { padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────────── APP ─────────────── -->
+<div class="widget-overlay" id="widgetOverlay">
+  <div class="widget-frame">
+
+    <!-- ══════════ SCREEN 0: LANDING ══════════ -->
+    <div class="screen active" id="screen-landing">
+      <div class="wbody" style="display:flex; flex-direction:column; justify-content:center; height:100%; text-align:center; padding: 32px 24px;">
+        <div style="font-size:52px; margin-bottom:20px;">🎯</div>
+        <div style="font-size:26px; font-weight:800; color:#1A1A1A; margin-bottom:10px; letter-spacing:-0.5px;">FirstJob</div>
+        <div style="font-size:18px; font-weight:600; color:#1A1A1A; margin-bottom:10px; line-height:1.3;">Найди первую работу без стресса</div>
+        <div style="font-size:14px; color:#6B7280; line-height:1.7; margin-bottom:36px;">Без опыта, без диплома.<br>Просто следуй плану — мы разберёмся вместе.</div>
+
+        <div style="display:flex; flex-direction:column; gap:14px; text-align:left; margin-bottom:36px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(39,155,240,0.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📋</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">Каждый день — план</div>
+              <div style="font-size:13px;color:#6B7280;">Сколько откликов нужно отправить сегодня</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(36,181,99,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✅</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">Отмечаешь ответы</div>
+              <div style="font-size:13px;color:#6B7280;">Кто позвонил, кто молчит, кто отказал</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(112,102,242,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔄</div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#1A1A1A;">Стратегия обновляется</div>
+              <div style="font-size:13px;color:#6B7280;">Мы пересчитываем план — ты просто делаешь</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="goScreen('screen-contract')" style="font-size:16px; height:52px;">Начать →</button>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 2: FILTERS ══════════ -->
+    <div class="screen" id="screen-filters">
+      <div class="wbar">
+        <button class="wbar-back" onclick="goBack('screen-contract')">←</button>
+        <div class="wbar-title" id="filterBarTitle">Шаг 1 из 4</div>
+        <button class="wbar-close" onclick="closeWidget()">×</button>
+      </div>
+
+      <div class="wbody">
+        <!-- Progress -->
+        <div class="filter-progress" id="filterProgress">
+          <div class="filter-progress-seg done" id="fp1"></div>
+          <div class="filter-progress-seg" id="fp2"></div>
+          <div class="filter-progress-seg" id="fp3"></div>
+          <div class="filter-progress-seg" id="fp4"></div>
+        </div>
+        <div class="filter-counter" id="filterCounter" style="display:none;">847 вакансий</div>
+
+        <!-- Step 1: City -->
+        <div class="filter-step active" id="fstep-1">
+          <div class="w-heading">В каком городе ищешь работу?</div>
+          <div class="w-subheading">Покажем вакансии рядом с тобой</div>
+          <input class="phone-input" type="text" placeholder="Введи название города..."
+            style="margin-bottom:16px;" oninput="filterCities(this.value)">
+          <div class="city-chips" id="cityChips">
+            <div class="chip" onclick="selectCity(this)">Москва</div>
+            <div class="chip" onclick="selectCity(this)">Санкт-Петербург</div>
+            <div class="chip" onclick="selectCity(this)">Казань</div>
+            <div class="chip" onclick="selectCity(this)">Екатеринбург</div>
+            <div class="chip" onclick="selectCity(this)">Новосибирск</div>
+            <div class="chip" onclick="selectCity(this)">Нижний Новгород</div>
+            <div class="chip" onclick="selectCity(this)">Краснодар</div>
+          </div>
+          <div class="btn-stack">
+            <button class="btn-primary" id="cityNextBtn" onclick="goFilterStep(2)" disabled>Далее →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Sphere -->
+        <div class="filter-step" id="fstep-2">
+          <div class="w-heading">Что тебе интереснее?</div>
+          <div class="w-subheading">Выбери одну или несколько сфер</div>
+          <div class="sphere-grid">
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">🛒</span>
+              <span class="sphere-card-label">Торговля</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">☕</span>
+              <span class="sphere-card-label">Кафе и рестораны</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">💻</span>
+              <span class="sphere-card-label">IT и офис</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">📦</span>
+              <span class="sphere-card-label">Склад и логистика</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">📞</span>
+              <span class="sphere-card-label">Колл-центр</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">💇</span>
+              <span class="sphere-card-label">Красота и уход</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">👶</span>
+              <span class="sphere-card-label">Образование</span>
+            </div>
+            <div class="sphere-card" onclick="toggleSphere(this)">
+              <span class="sphere-card-emoji">🏥</span>
+              <span class="sphere-card-label">Медицина</span>
+            </div>
+          </div>
+          <div class="btn-stack">
+            <button class="btn-primary" id="sphereNextBtn" onclick="goFilterStep(3)" disabled>Далее →</button>
+            <button class="btn-secondary" onclick="goFilterStep(1)">← Назад</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Schedule -->
+        <div class="filter-step" id="fstep-3">
+          <div class="w-heading">Какой график подходит?</div>
+          <div class="w-subheading">Можно выбрать несколько</div>
+          <div class="schedule-chips">
+            <div class="schedule-chip" onclick="toggleChip(this, 'schedule')">Полный день (5/2)</div>
+            <div class="schedule-chip" onclick="toggleChip(this, 'schedule')">Частичная занятость</div>
+            <div class="schedule-chip" onclick="toggleChip(this, 'schedule')">Сменный график</div>
+            <div class="schedule-chip" onclick="toggleChip(this, 'schedule')">Удалённо</div>
+          </div>
+          <div class="btn-stack">
+            <button class="btn-primary" id="scheduleNextBtn" onclick="goFilterStep(4)" disabled>Далее →</button>
+            <button class="btn-secondary" onclick="goFilterStep(2)">← Назад</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Salary -->
+        <div class="filter-step" id="fstep-4">
+          <div class="w-heading">Минимальная зарплата?</div>
+          <div class="w-subheading">Покажем вакансии с зарплатой от выбранной суммы</div>
+          <div class="salary-wrap">
+            <div class="salary-value"><span id="salaryDisplay">35 000</span> ₽ <span>/ месяц</span></div>
+            <input type="range" id="salarySlider" min="20000" max="80000" value="35000" step="1000"
+              oninput="updateSalary(this.value)">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#9CA3AF;">
+              <span>20 000 ₽</span><span>80 000 ₽</span>
+            </div>
+            <div class="salary-hint" id="salaryHint">При 35 000 ₽ — 312 вакансий подходят</div>
+            <div class="salary-warning" id="salaryWarning">
+              ⚠️ Высокая зарплата сильно сужает выборку. Попробуй снизить до 30 000 ₽ — станет 89 вакансий
+            </div>
+          </div>
+          <div class="btn-stack">
+            <button class="btn-primary" onclick="goScreen('screen-day1')">Показать вакансии →</button>
+            <button class="btn-secondary" onclick="goFilterStep(3)">← Назад</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 3: CONTRACT ══════════ -->
+    <div class="screen" id="screen-contract">
+      <div class="wbar">
+        <button class="wbar-back" onclick="goScreen('screen-landing')">←</button>
+        <div class="wbar-title">Как это работает</div>
+      </div>
+
+      <div class="wbody">
+        <div class="contract-flow">
+          <div class="contract-icon">📋</div>
+          <div class="contract-arrow">→</div>
+          <div class="contract-icon">✅</div>
+          <div class="contract-arrow">→</div>
+          <div class="contract-icon">🏆</div>
+        </div>
+
+        <div class="w-heading">Вот как это работает</div>
+        <div class="w-subheading">Мы не просто покажем вакансии — поведём тебя по поиску шаг за шагом</div>
+
+        <div class="contract-items">
+          <div class="contract-item">
+            <div class="contract-item-icon" style="background:rgba(39,155,240,0.16);">📋</div>
+            <div class="contract-item-text">
+              <strong>Каждый день — план</strong>
+              <p>Утром получаешь сколько откликов нужно отправить сегодня</p>
+            </div>
+          </div>
+          <div class="contract-item">
+            <div class="contract-item-icon" style="background:rgba(36,181,99,.08);">✅</div>
+            <div class="contract-item-text">
+              <strong>Отмечаешь ответы</strong>
+              <p>Кто позвонил, кто молчит, кто отказал — 2 минуты в день</p>
+            </div>
+          </div>
+          <div class="contract-item">
+            <div class="contract-item-icon" style="background:rgba(112,102,242,.08);">🔄</div>
+            <div class="contract-item-text">
+              <strong>Стратегия обновляется</strong>
+              <p>Мы пересчитываем план под твою воронку. Ты не думаешь — просто делаешь</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="goScreen('screen-filters'); currentFilterStep=1; updateFilterProgress();" style="font-size:16px;">
+          Поехали — стартуем сегодня 🚀
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 4: DAY 1 ══════════ -->
+    <div class="screen" id="screen-day1">
+      <div class="wbar">
+        <button class="wbar-back" onclick="goScreen('screen-contract')">←</button>
+        <div class="wbar-title">Отклики</div>
+        <button class="wbar-close" onclick="closeWidget()">×</button>
+      </div>
+
+      <div class="wbody">
+        <!-- Progress -->
+        <div class="apply-progress-row">
+          <div class="apply-progress-label" id="applyLabel">Сегодня нужно отправить</div>
+          <div class="apply-progress-count" id="applyCount">0 / 8</div>
+        </div>
+        <div class="apply-progress-bar">
+          <div class="apply-progress-fill" id="applyFill"></div>
+        </div>
+
+        <!-- Vacancy cards container -->
+        <div id="vacCardContainer">
+          <!-- Cards rendered by JS -->
+        </div>
+
+        <!-- Success + Plan screen -->
+        <div class="apply-success" id="applySuccess" style="align-items:stretch; text-align:left;">
+          <div style="text-align:center; margin-bottom:20px;">
+            <div class="success-circle" id="successIcon" style="margin:0 auto 16px;">🎉</div>
+            <div class="w-heading" id="successHeading">Отлично! 8 откликов ушли</div>
+            <div class="w-subheading" id="successSubheading" style="margin-bottom:0;">Ждём ответов — вот что сейчас в воронке</div>
+          </div>
+
+          <div class="funnel-grid" style="margin-bottom:16px;">
+            <div class="funnel-cell green">
+              <span class="funnel-cell-icon">📞</span>
+              <span class="funnel-cell-num" id="fn-called">0</span>
+              <span class="funnel-cell-label">Позвонили</span>
+            </div>
+            <div class="funnel-cell purple">
+              <span class="funnel-cell-icon">⏳</span>
+              <span class="funnel-cell-num" id="fn-wait">8</span>
+              <span class="funnel-cell-label">Ждём ответа</span>
+            </div>
+            <div class="funnel-cell">
+              <span class="funnel-cell-icon">❌</span>
+              <span class="funnel-cell-num" id="fn-reject">0</span>
+              <span class="funnel-cell-label">Отказ</span>
+            </div>
+          </div>
+
+          <div class="strategy-box" id="strategyBox" style="margin-bottom:16px;">
+            <strong id="strategyText">Ждём ответов — всё идёт по плану</strong>
+            <p id="strategyBody">Большинство работодателей отвечают в течение 1–3 дней. Возвращайся завтра, чтобы обновить статусы.</p>
+            <div id="countdownWrap" style="display:none; margin-top:14px; text-align:center;">
+              <div id="countdownTimer" style="font-size:28px; font-weight:700; color:#279BF0; letter-spacing:2px; margin-bottom:4px;">24:00:00</div>
+              <div style="font-size:12px; color:#9CA3AF;">до напоминания</div>
+            </div>
+          </div>
+
+          <div class="btn-stack" style="margin-top:4px;">
+            <button class="btn-primary" id="startBtn" style="display:none;">Начать →</button>
+            <button id="prepBtnFunnel" onclick="openPrepScreen()" style="display:none;">Подготовиться к звонкам 📞</button>
+            <button id="updateStatusBtn" onclick="goScreen('screen-day2')">Обновить статусы откликов</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 5: DAY 2+ STATUSES ══════════ -->
+    <div class="screen" id="screen-day2">
+      <div class="wbar">
+        <button class="wbar-back" onclick="goToFunnel()">←</button>
+        <div class="wbar-title">Статусы</div>
+        <button class="wbar-close" onclick="closeWidget()">×</button>
+      </div>
+
+      <div class="wbody">
+        <div class="apply-progress-row">
+          <div class="apply-progress-label" id="statusLabel">Вакансия 1 из 8</div>
+          <div class="apply-progress-count" id="statusCount">1 / 8</div>
+        </div>
+        <div class="apply-progress-bar">
+          <div class="apply-progress-fill" id="statusFill" style="width:0%"></div>
+        </div>
+
+        <div id="statusCardContainer">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════ SCREEN 7: INTERVIEW PREP ══════════ -->
+    <div class="screen" id="screen-prep">
+      <div class="wbar">
+        <button class="wbar-back" onclick="goBackFromPrep()">←</button>
+        <div class="wbar-title" id="prepBarTitle">Подготовка к звонку</div>
+        <button class="wbar-close" onclick="closeWidget()">×</button>
+      </div>
+
+      <div class="wbody">
+        <!-- progress -->
+        <div class="apply-progress-row" id="prepProgressRow" style="display:none;">
+          <div class="apply-progress-label" id="prepProgressLabel"></div>
+          <div class="apply-progress-count" id="prepProgressCount"></div>
+        </div>
+        <div class="apply-progress-bar" id="prepProgressBar" style="display:none; margin-bottom:20px;">
+          <div class="apply-progress-fill" id="prepProgressFill"></div>
+        </div>
+
+        <div id="prepBody"></div>
+
+        <button class="btn-primary" id="prepNextBtn" onclick="nextPrepVac()" style="margin-top:4px;">
+          Готов к звонку ✓
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════ SCREEN 8: HIRED ══════════ -->
+    <div class="screen" id="screen-hired">
+      <div class="wbar">
+        <button class="wbar-close" onclick="closeWidget()" style="margin-left:auto;">×</button>
+      </div>
+      <div class="wbody" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; height:100%;">
+        <div class="success-circle" style="font-size:48px; margin:0 auto 24px;">🏆</div>
+        <div class="w-heading" style="margin-bottom:12px;">Поздравляем!</div>
+        <p style="font-size:15px; color:#6B7280; line-height:1.6; margin-bottom:32px;">
+          Рады, что помогли найти работу.<br>Удачи на новом месте — ты справишься!
+        </p>
+        <button class="btn-primary" onclick="closeWidget()">Закрыть</button>
+      </div>
+    </div>
+
+  </div><!-- /widget-frame -->
+</div><!-- /widget-overlay -->
+
+
+<script>
+// ─── STATE ───
+let currentFilterStep = 1;
+let allApplications   = [];  // [{vacancy, status: null/'silent'/'called'/'reject'}]
+let roundTarget       = 8;   // how many to apply this round (8 on first, = rejects after review)
+let appliedThisRound  = 0;   // progress counter within current round
+let pendingApplications = []; // subset of allApplications shown in status-update screen
+let newRejectCount    = 0;   // отказы, появившиеся в последнем разборе статусов; сбрасывается при новых откликах
+let smsTimer = null;
+
+const vacancies = [
+  { logo:'П5', title:'Кассир / Торговый зал', company:'Пятёрочка', loc:'Москва, м. Выхино', salary:'40 000 — 50 000 ₽', tags:['Полный день','Без опыта','По ТК'], desc:'Работа на кассе и в торговом зале. Обслуживание покупателей, выкладка товара, поддержание порядка. Обучение с первого дня — опыт не нужен.',
+    tips:[{q:'Расскажи о себе',a:'Скажи имя, что ищешь первую работу и готов учиться. Упомяни, что умеешь быть вежливым с людьми — для кассира это главное.'},{q:'Почему к нам?',a:'«Пятёрочка рядом с домом, удобно добираться. Хочу получить первый опыт в торговле в понятной компании.»'},{q:'Когда выйдешь?',a:'«Готов в течение недели, как только оформим документы.»'}] },
+  { logo:'МТ', title:'Оператор колл-центра', company:'МТС', loc:'Москва (удалённо)', salary:'45 000 ₽', tags:['Удалённо','Гибкий'], desc:'Приём входящих звонков, консультации клиентов по тарифам и услугам. Полностью удалённо, всё оборудование предоставляется. Обучение 2 недели.',
+    tips:[{q:'Расскажи о себе',a:'Упомяни, что хорошо говоришь, не теряешься при разговоре и умеешь объяснять понятно. Опыт не нужен — скажи, что быстро учишься.'},{q:'Есть ли опыт общения с людьми?',a:'«Да, помогал клиентам / работал волонтёром / консультировал знакомых» — подойдёт любой пример живого общения.'},{q:'Как относишься к скриптам?',a:'«Нормально, понимаю что это помогает быть последовательным. Быстро запоминаю.»'}] },
+  { logo:'СБ', title:'Помощник консультанта', company:'Сбер', loc:'Москва, м. Арбатская', salary:'42 000 ₽', tags:['Полный день','Без опыта'], desc:'Помощь клиентам в офисе банка: навигация по услугам, работа с документами, консультации у стойки. Наставник с первого дня, полное обучение.',
+    tips:[{q:'Расскажи о себе',a:'Назови имя, скажи что ищешь первую работу в банковской сфере. Упомяни внимательность и аккуратность — для Сбера это важно.'},{q:'Почему банк?',a:'«Хочу понять как устроена финансовая сфера изнутри. Сбер — понятный старт, большая компания с обучением.»'},{q:'Стрессоустойчив?',a:'«Стараюсь сохранять спокойствие. В напряжённых ситуациях сначала слушаю, потом отвечаю.»'}] },
+  { logo:'ЯМ', title:'Курьер', company:'Яндекс Маркет', loc:'Москва', salary:'55 000 — 70 000 ₽', tags:['Гибкий','Без опыта'], desc:'Доставка заказов покупателям по удобному маршруту. Гибкий график — сам выбираешь смены. Оплата за каждый заказ + бонусы за скорость.',
+    tips:[{q:'Есть права / велосипед / самокат?',a:'Отвечай честно. Если нет — скажи, что готов работать пешим или уточни формат доставки.'},{q:'Как относишься к физической нагрузке?',a:'«Нормально, не боюсь ходить пешком. Готов к активной работе.»'},{q:'Почему курьер?',a:'«Нравится свобода маршрута, хочу зарабатывать сразу. Удобный гибкий график.»'}] },
+  { logo:'КФ', title:'Помощник бариста', company:'CoffeeFest', loc:'Москва, м. Чистые пруды', salary:'38 000 ₽', tags:['Сменный','Обучение'], desc:'Помогаешь бариста на смене: готовишь ингредиенты, моешь оборудование, принимаешь заказы. Обучаем с нуля — через 2 месяца можно стать барристой.',
+    tips:[{q:'Любишь кофе?',a:'Необязательно быть экспертом. «Интересуюсь, хочу разобраться. Нравится атмосфера кофеен.»'},{q:'Работал в общепите?',a:'Если нет — не страшно. «Нет, но я аккуратный, быстро учусь и не боюсь стоять на ногах весь день.»'},{q:'Как с ранними сменами?',a:'«Нормально отношусь, могу выходить с открытия.»'}] },
+  { logo:'ОБ', title:'Продавец-консультант', company:'Obi', loc:'Москва, м. Тёплый Стан', salary:'44 000 ₽', tags:['Полный день','Соцпакет'], desc:'Помогаешь покупателям выбрать товары для дома и ремонта. Знать всё не нужно — научат. Соцпакет, корпоративная скидка 20% на товары магазина.',
+    tips:[{q:'Знаешь что-то о строительных материалах?',a:'Честно: «Немного, но быстро разберусь. Готов изучить ассортимент за первые дни.»'},{q:'Как будешь помогать покупателю?',a:'«Выслушаю задачу, уточню детали, предложу варианты и честно скажу если не знаю — узнаю у коллеги.»'},{q:'Готов к работе в выходные?',a:'«Да, понимаю специфику розницы, выходные — рабочие дни.»'}] },
+  { logo:'ДН', title:'Ассистент склада', company:'DNS', loc:'Москва, Коровино', salary:'40 000 ₽', tags:['Сменный','Без опыта'], desc:'Приёмка и сортировка товаров, работа со сканером, поддержание порядка на складе. Сменный график 2/2. Форма и питание за счёт компании.',
+    tips:[{q:'Есть опыт на складе?',a:'«Нет, но я физически готов, аккуратный и внимательный. Быстро запомню систему хранения.»'},{q:'Как относишься к монотонной работе?',a:'«Нормально, умею концентрироваться. Монотонность не раздражает, если знаешь зачем делаешь.»'},{q:'Когда готов выйти?',a:'«Хоть с понедельника, документы в порядке.»'}] },
+  { logo:'ЛО', title:'Администратор салона', company:'ЛОКОН', loc:'Москва, м. Юго-Западная', salary:'38 000 — 48 000 ₽', tags:['Полный день','Обучение'], desc:'Встречаешь клиентов, ведёшь запись, работаешь с кассой. Приятная атмосфера, небольшой дружный коллектив. Обучение программе записи — 3 дня.',
+    tips:[{q:'Есть опыт с клиентами?',a:'«Прямого нет, но я общительный и вежливый. Умею улыбаться и не теряться когда всё идёт не по плану.»'},{q:'Умеешь работать с кассой / записью?',a:'«Не работал, но разберусь быстро — с техникой на «ты», новые программы осваиваю легко.»'},{q:'Почему салон красоты?',a:'«Нравится сфера, хочу попробовать себя в сервисе. Люблю когда клиент уходит довольным.»'}] },
+];
+
+
+// ─── NAV ───
+function openWidget() { /* standalone — no-op */ }
+function closeWidget() { goScreen('screen-landing'); }
+
+document.getElementById('widgetOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeWidget();
+});
+
+// ─── SCREEN NAV ───
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+
+  if (id === 'screen-day1') initDay1();
+  if (id === 'screen-day2') initDay2();
+}
+
+function goBack(id) { goScreen(id); }
+
+// funnelState: 'applied' | 'returning' | 'reviewed'
+let funnelState = 'applied';
+
+function setFunnelHeading(icon, heading, subheading) {
+  const ic = document.getElementById('successIcon');
+  const h  = document.getElementById('successHeading');
+  const s  = document.getElementById('successSubheading');
+  if (ic) ic.textContent = icon;
+  if (h)  h.textContent  = heading;
+  if (s)  s.textContent  = subheading;
+}
+
+function goToFunnel(icon, heading, subheading) {
+  if (funnelState === 'applied') {
+    funnelState = 'returning';
+    // Use custom heading if passed, otherwise default "day 2" heading
+    setFunnelHeading(
+      icon     || '📋',
+      heading  || 'Вот что сейчас в воронке',
+      subheading || 'Пора обновить статусы — кто позвонил, кто молчит'
+    );
+  } else if (icon) {
+    setFunnelHeading(icon, heading, subheading);
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById('screen-day1');
+  s.classList.add('active');
+  s.scrollTop = 0;
+  updateFunnelFromStatuses();
+}
+
+function updateFunnelFromStatuses() {
+  // Always derive from the real application list — no special-casing needed:
+  // before any review, all statuses are null → called=0, wait=N, reject=0 ✓
+  const called = allApplications.filter(a => a.status === 'called').length;
+  const wait   = allApplications.filter(a => a.status === null || a.status === 'silent').length;
+  const reject = allApplications.filter(a => a.status === 'reject').length;
+
+  document.getElementById('fn-called').textContent = called;
+  document.getElementById('fn-wait').textContent   = wait;
+  document.getElementById('fn-reject').textContent = reject;
+
+  const startBtn        = document.getElementById('startBtn');
+  const prepBtn         = document.getElementById('prepBtnFunnel');
+  const updateBtn       = document.getElementById('updateStatusBtn');
+  const strategyTitle   = document.getElementById('strategyText');
+  const strategyBody    = document.getElementById('strategyBody');
+
+  // Reset all buttons and timer
+  startBtn.style.display  = 'none';
+  prepBtn.style.display   = 'none';
+  updateBtn.style.display = 'none';
+  startBtn.style.order    = '';
+  prepBtn.style.order     = '';
+  updateBtn.style.order   = '';
+  prepBtn.className       = 'btn-secondary';
+  prepBtn.textContent     = 'Подготовиться к звонкам 📞';
+  startBtn.onclick        = () => goScreen('screen-day1');
+  updateBtn.onclick       = () => goScreen('screen-day2');
+  document.getElementById('countdownWrap').style.display = 'none';
+  clearInterval(countdownInterval);
+
+  const timerExpired = isCountdownExpired();
+
+  // ── Таймер: показываем пока идёт и есть отклики в ожидании ──
+  if (wait > 0 && !timerExpired) {
+    document.getElementById('countdownWrap').style.display = '';
+    startCountdown(24 * 60 * 60);
+  }
+
+  // ── Dead-end: все отклики разобраны, ждать больше некого, новых отказов нет ──
+  const isDeadEnd = funnelState === 'reviewed' && wait === 0 && newRejectCount === 0 && allApplications.length > 0;
+
+  // ── Текст стратегии ──
+  if (isDeadEnd) {
+    strategyTitle.textContent = 'Как прошли звонки?';
+    strategyBody.textContent  = 'Ты пообщался с работодателями — что в итоге?';
+  } else if (newRejectCount > 0) {
+    strategyTitle.textContent = `Сегодня нужно ${fmtOtklikov(newRejectCount)}`;
+    strategyBody.textContent  = `Добавь ${newRejectCount} новых — вместо тех, кто отказал.` +
+                                (wait > 0 ? ` ${wait} ещё ждут ответа.` : '');
+  } else if (wait > 0 && !timerExpired) {
+    strategyTitle.textContent = 'Жди звонков — ты всё сделал правильно';
+    strategyBody.textContent  = 'Через 24 часа пришлём тебе СМС с напоминанием обновить статусы.';
+  } else {
+    strategyTitle.textContent = 'Всё идёт по плану';
+    strategyBody.textContent  = (called > 0 ? `Из ${called} мест уже позвонили. ` : '') +
+                                (wait > 0 ? `${wait} ещё ждут — готовься к звонкам.` : 'Ждём новых ответов.');
+  }
+
+  // ── Кнопки ──
+  let order = 1;
+
+  if (isDeadEnd) {
+    // Путь 1: устроился на работу
+    startBtn.style.display = '';
+    startBtn.className     = 'btn-primary';
+    startBtn.textContent   = 'Устроился на работу! 🎉';
+    startBtn.onclick       = () => goScreen('screen-hired');
+    startBtn.style.order   = String(order++);
+    // Путь 2: ищу дальше
+    updateBtn.style.display = '';
+    updateBtn.className     = 'btn-secondary';
+    updateBtn.textContent   = 'Пока нет, ищу дальше';
+    updateBtn.onclick       = searchFurther;
+    updateBtn.style.order   = String(order++);
+  } else {
+    // «Выбрать вакансии» — только если в последнем разборе появились новые отказы
+    if (newRejectCount > 0) {
+      startBtn.style.display = '';
+      startBtn.className     = 'btn-primary';
+      startBtn.textContent   = 'Выбрать вакансии →';
+      startBtn.onclick       = () => goScreen('screen-day1');
+      startBtn.style.order   = String(order++);
+    }
+    // «Подготовиться к звонкам» — если есть отклики в ожидании
+    if (wait > 0) {
+      prepBtn.style.display = '';
+      prepBtn.className     = newRejectCount > 0 ? 'btn-secondary' : 'btn-primary';
+      prepBtn.textContent   = 'Подготовиться к звонкам 📞';
+      prepBtn.style.order   = String(order++);
+    }
+    // «Уже позвонили?» — если есть отклики в ожидании
+    if (wait > 0) {
+      updateBtn.style.display = '';
+      updateBtn.className     = 'btn-secondary';
+      updateBtn.textContent   = 'Уже позвонили? →';
+      updateBtn.onclick       = () => goScreen('screen-day2');
+      updateBtn.style.order   = String(order++);
+    }
+  }
+}
+
+// ─── AUTH ───
+function formatPhone(input) {
+  let v = input.value.replace(/\D/g,'');
+  if (v.startsWith('7') || v.startsWith('8')) v = v.slice(1);
+  v = v.slice(0,10);
+  let f = '+7';
+  if (v.length > 0) f += ' (' + v.slice(0,3);
+  if (v.length >= 3) f += ') ' + v.slice(3,6);
+  if (v.length >= 6) f += '-' + v.slice(6,8);
+  if (v.length >= 8) f += '-' + v.slice(8,10);
+  input.value = f;
+  document.getElementById('getCodeBtn').disabled = v.length < 10;
+}
+
+function sendCode() {
+  const ph = document.getElementById('phoneInput').value;
+  document.getElementById('phoneDisplay').textContent = ph;
+  document.getElementById('auth-phone-step').style.display = 'none';
+  document.getElementById('auth-sms-step').style.display = 'block';
+  document.getElementById('d1').focus();
+  startSmsTimer();
+}
+
+function startSmsTimer() {
+  let t = 59;
+  document.getElementById('timerDisplay').textContent = t;
+  smsTimer = setInterval(() => {
+    t--;
+    document.getElementById('timerDisplay').textContent = t;
+    if (t <= 0) {
+      clearInterval(smsTimer);
+      const resend = document.querySelector('.sms-resend');
+      resend.innerHTML = '<span onclick="resendCode()">Отправить ещё раз</span>';
+    }
+  }, 1000);
+}
+
+function resendCode() {
+  document.querySelectorAll('.sms-digit').forEach(d => d.value = '');
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('d1').focus();
+  startSmsTimer();
+  document.querySelector('.sms-resend').innerHTML = 'Отправить ещё раз через <span id="timerDisplay">59</span> с';
+}
+
+function smsInput(el, idx) {
+  el.value = el.value.replace(/\D/,'').slice(-1);
+  el.classList.toggle('filled', el.value !== '');
+  if (el.value && idx < 4) {
+    document.getElementById('d'+(idx+1)).focus();
+  }
+  const allFilled = [1,2,3,4].every(i => document.getElementById('d'+i).value !== '');
+  document.getElementById('loginBtn').disabled = !allFilled;
+}
+
+function goToFilters() {
+  goScreen('screen-contract');
+}
+
+// ─── COUNTDOWN TIMER ───
+let countdownInterval = null;
+const COUNTDOWN_KEY = 'fj_countdown_start';
+
+function isCountdownExpired(durationSeconds = 24 * 60 * 60) {
+  const startedAt = localStorage.getItem(COUNTDOWN_KEY);
+  if (!startedAt) return false;
+  return (Date.now() - parseInt(startedAt, 10)) >= durationSeconds * 1000;
+}
+
+function startCountdown(durationSeconds) {
+  clearInterval(countdownInterval);
+
+  // Сохраняем момент первого запуска, если ещё не сохранён
+  if (!localStorage.getItem(COUNTDOWN_KEY)) {
+    localStorage.setItem(COUNTDOWN_KEY, Date.now().toString());
+  }
+
+  const el = document.getElementById('countdownTimer');
+
+  function tick() {
+    const startedAt = parseInt(localStorage.getItem(COUNTDOWN_KEY), 10);
+    const elapsed   = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = Math.max(durationSeconds - elapsed, 0);
+
+    const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+    const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${s}`;
+
+    if (remaining <= 0) clearInterval(countdownInterval);
+  }
+
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+function resetCountdown() {
+  localStorage.removeItem(COUNTDOWN_KEY);
+}
+
+// ─── FILTERS ───
+function goFilterStep(step) {
+  currentFilterStep = step;
+  document.querySelectorAll('.filter-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('fstep-'+step).classList.add('active');
+  updateFilterProgress();
+  const titles = ['','Шаг 1 из 4 — Город','Шаг 2 из 4 — Сфера','Шаг 3 из 4 — График','Шаг 4 из 4 — Зарплата'];
+  document.getElementById('filterBarTitle').textContent = titles[step];
+}
+
+function updateFilterProgress() {
+  for (let i=1;i<=4;i++) {
+    document.getElementById('fp'+i).classList.toggle('done', i <= currentFilterStep);
+  }
+  const counter = document.getElementById('filterCounter');
+  const activeStep = document.getElementById('fstep-' + currentFilterStep);
+  const btnStack = activeStep && activeStep.querySelector('.btn-stack');
+  if (btnStack) {
+    btnStack.insertBefore(counter, btnStack.firstChild);
+    counter.style.display = '';
+  }
+}
+
+let selectedCity = null;
+function selectCity(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCity = el.textContent;
+  document.getElementById('cityNextBtn').disabled = false;
+  updateCounter(-150);
+}
+
+let sphereCount = 0;
+function toggleSphere(el) {
+  el.classList.toggle('selected');
+  sphereCount = document.querySelectorAll('.sphere-card.selected').length;
+  document.getElementById('sphereNextBtn').disabled = sphereCount === 0;
+  updateCounter(-sphereCount * 40);
+}
+
+function toggleChip(el, group) {
+  el.classList.toggle('selected');
+  const anySelected = document.querySelectorAll('.schedule-chip.selected').length > 0;
+  document.getElementById('scheduleNextBtn').disabled = !anySelected;
+  updateCounter(-20);
+}
+
+let baseCount = 847;
+let currentCount = 847;
+function updateCounter(delta) {
+  currentCount = Math.max(12, currentCount + delta);
+  animateCounter(currentCount);
+}
+
+function animateCounter(target) {
+  const el = document.getElementById('filterCounter');
+  const start = parseInt(el.textContent);
+  const diff = target - start;
+  const duration = 400;
+  const startTime = performance.now();
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + diff * ease);
+    el.textContent = current.toLocaleString('ru') + ' вакансий';
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function updateSalary(val) {
+  const v = parseInt(val);
+  const formatted = v.toLocaleString('ru');
+  document.getElementById('salaryDisplay').textContent = formatted;
+
+  // calc vacancies
+  const vacCount = Math.max(8, Math.round(500 * (1 - (v - 20000) / 80000)));
+  document.getElementById('salaryHint').textContent = `При ${formatted} ₽ — ${vacCount} вакансий подходят`;
+
+  // range gradient
+  const pct = ((v - 20000) / (80000 - 20000) * 100).toFixed(1);
+  document.getElementById('salarySlider').style.setProperty('--pct', pct + '%');
+
+  // warning
+  document.getElementById('salaryWarning').classList.toggle('show', v >= 60000);
+
+  animateCounter(vacCount);
+}
+
+// init range gradient
+updateSalary(35000);
+
+// ─── DAY 1: VACANCY CARDS ───
+let currentVacIdx = 0;
+
+function searchFurther() {
+  // Пользователь ищет дальше — стартуем новый раунд из 8 откликов
+  roundTarget = 8;
+  goScreen('screen-day1'); // initDay1 вызывается внутри goScreen
+}
+
+function initDay1() {
+  // Rejected apps stay in allApplications — funnel always shows full history
+  newRejectCount = 0;   // новые отклики пошли — «рекомендация выбрать вакансии» закрыта
+  appliedThisRound = 0;
+  currentVacIdx = 0;
+  updateApplyProgress();
+  document.getElementById('applySuccess').classList.remove('show');
+  document.querySelector('#screen-day1 .apply-progress-row').style.display = '';
+  document.querySelector('#screen-day1 .apply-progress-bar').style.display = '';
+  renderVacCard();
+}
+
+function renderVacCard() {
+  const container = document.getElementById('vacCardContainer');
+  if (appliedThisRound >= roundTarget) {
+    container.innerHTML = '';
+    return;
+  }
+  if (currentVacIdx >= vacancies.length) currentVacIdx = 0;
+  const v = vacancies[currentVacIdx];
+  const tip = v.tips && v.tips[0];
+  container.innerHTML = `
+    <div class="vac-card" id="activeVacCard">
+      <div class="vac-card-top">
+        <div class="vac-logo">${v.logo}</div>
+        <div>
+          <div class="vac-card-title">${v.title}</div>
+          <div class="vac-card-company">${v.company}</div>
+        </div>
+      </div>
+      <div class="vac-card-salary">${v.salary}</div>
+      <div class="vac-card-meta">📍 ${v.loc}</div>
+      <div class="vac-card-badges" style="margin-bottom:12px;">
+        ${v.tags.map(t => `<span class="vac-badge ${t==='Без опыта'?'green':'gray'}">${t}</span>`).join('')}
+      </div>
+      ${v.desc ? `<div style="font-size:13px;color:#374151;line-height:1.5;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #F0F2F5;">${v.desc}</div>` : ''}
+      ${tip ? `<div style="background:rgba(39,155,240,0.16);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:700;color:#279BF0;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Если позвонят — скажи</div>
+        <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:2px;">«${tip.q}»</div>
+        <div style="font-size:12px;color:#6B7280;line-height:1.4;">${tip.a}</div>
+      </div>` : ''}
+    </div>
+    <div class="btn-stack">
+      <button class="btn-primary" onclick="applyVac()">Откликнуться →</button>
+      <button class="btn-secondary" onclick="skipVac()">Пропустить</button>
+    </div>
+  `;
+}
+
+function applyVac() {
+  const card = document.getElementById('activeVacCard');
+  if (!card) return;
+  card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+  card.style.transform = 'translateX(-60px) scale(0.95)';
+  card.style.opacity = '0';
+  setTimeout(() => {
+    allApplications.push({ vacancy: vacancies[currentVacIdx % vacancies.length], status: null });
+    appliedThisRound++;
+    currentVacIdx++;
+    updateApplyProgress();
+    if (appliedThisRound >= roundTarget) {
+      funnelState = 'applied';
+      resetCountdown();
+      document.getElementById('vacCardContainer').innerHTML = '';
+      document.getElementById('applySuccess').classList.add('show');
+      document.querySelector('#screen-day1 .apply-progress-row').style.display = 'none';
+      document.querySelector('#screen-day1 .apply-progress-bar').style.display = 'none';
+      setFunnelHeading(
+        '🎉',
+        'Отлично! ' + fmtOtklikov(appliedThisRound) + ' ушли',
+        'Ждём ответов — вот что сейчас в воронке'
+      );
+      updateFunnelFromStatuses();
+    } else {
+      renderVacCard();
+    }
+  }, 250);
+}
+
+function fmtOtklikov(n) {
+  if (n === 1) return n + ' отклик';
+  if (n >= 2 && n <= 4) return n + ' отклика';
+  return n + ' откликов';
+}
+
+
+function skipVac() {
+  const card = document.getElementById('activeVacCard');
+  if (!card) return;
+  card.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+  card.style.transform = 'translateX(60px) scale(0.95)';
+  card.style.opacity = '0';
+  setTimeout(() => {
+    currentVacIdx++;
+    renderVacCard();
+  }, 200);
+}
+
+function updateApplyProgress() {
+  const pct = roundTarget > 0 ? (appliedThisRound / roundTarget * 100).toFixed(0) : 0;
+  document.getElementById('applyFill').style.width = pct + '%';
+  document.getElementById('applyCount').textContent = appliedThisRound + ' / ' + roundTarget;
+  document.getElementById('applyLabel').textContent =
+    appliedThisRound === 0 ? 'Сегодня нужно отправить' :
+    appliedThisRound >= roundTarget ? '🎉 Все отклики отправлены!' :
+    'Продолжаем — осталось ' + (roundTarget - appliedThisRound);
+}
+
+// ─── DAY 2: STATUSES ───
+let currentStatusIdx = 0;
+
+function initDay2() {
+  // Only show apps that still need a status update: never reviewed OR still waiting
+  pendingApplications = allApplications.filter(a => a.status === null || a.status === 'silent');
+  currentStatusIdx = 0;
+  if (pendingApplications.length === 0) {
+    goToFunnel();
+    return;
+  }
+  renderStatusCard();
+}
+
+function renderStatusCard() {
+  const container = document.getElementById('statusCardContainer');
+  const total = pendingApplications.length;
+  const idx = currentStatusIdx;
+
+  document.getElementById('statusCount').textContent = (idx + 1) + ' / ' + total;
+  document.getElementById('statusLabel').textContent = 'Вакансия ' + (idx + 1) + ' из ' + total;
+  document.getElementById('statusFill').style.width = (idx / total * 100) + '%';
+
+  const vac = pendingApplications[idx].vacancy;
+  const tags = vac ? vac.tags : [];
+
+  container.innerHTML = `
+    <div class="vac-card" id="statusActiveCard" style="margin-top:4px;">
+      <div class="vac-card-top">
+        <div class="vac-logo">${vac ? vac.logo : '?'}</div>
+        <div>
+          <div class="vac-card-title">${vac ? vac.title : ''}</div>
+          <div class="vac-card-company">${vac ? vac.company : ''}</div>
+        </div>
+      </div>
+      ${vac ? `<div class="vac-card-salary">${vac.salary}</div>
+      <div class="vac-card-meta">📍 ${vac.loc}</div>
+      <div class="vac-card-badges" style="margin-bottom:14px;">
+        ${tags.map(t => `<span class="vac-badge ${t==='Без опыта'?'green':'gray'}">${t}</span>`).join('')}
+      </div>` : ''}
+      <div style="font-size:12px; font-weight:400; color:#9CA3AF; margin-bottom:10px; letter-spacing:.03em;">Работодатель позвонил?</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:48px 48px; gap:8px; margin-bottom:16px;">
+        <button class="status-btn" style="height:100%; border-radius:10px; font-size:14px; font-weight:400; border:none; background:#F0F2F5; color:#6B7280; grid-column:1/-1;" onclick="pickStatus('silent', this)">🔇&nbsp; Тишина — жду ответа</button>
+        <button class="status-btn" style="height:100%; border-radius:10px; font-size:14px; font-weight:400; border:none; background:rgba(36,181,99,.12); color:#15803d;" onclick="pickStatus('called', this)">📞&nbsp; Позвонили</button>
+        <button class="status-btn" style="height:100%; border-radius:10px; font-size:14px; font-weight:400; border:none; background:rgba(239,68,68,.08); color:#DC2626;" onclick="pickStatus('reject', this)">❌&nbsp; Отказали</button>
+      </div>
+      ${vac && vac.tips ? `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:400;color:#9CA3AF;letter-spacing:.03em;margin-bottom:8px;">Что делать, когда позвонят</div>
+        ${vac.tips.map((t, i) => `
+          <div class="accordion-item" style="margin-bottom:6px;">
+            <div class="accordion-header" onclick="toggleAccordion(this)" ${i===0?'':''}>
+              «${t.q}»<span class="accordion-arrow">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div style="font-size:13px;color:#6B7280;line-height:1.5;">${t.a}</div>
+            </div>
+          </div>`).join('')}
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#F5F7FA;border-radius:10px;padding:12px;margin-top:8px;">
+          <div style="font-size:18px;flex-shrink:0;">📋</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Что взять на встречу</div>
+            <div style="font-size:12px;color:#6B7280;line-height:1.4;">Паспорт, СНИЛС, трудовая книжка (если есть). Оденься аккуратно — не нужно быть в костюме.</div>
+          </div>
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+function pickStatus(type, btn) {
+  // Mutate the application object directly (same reference in allApplications)
+  pendingApplications[currentStatusIdx].status = type;
+
+  // highlight
+  document.querySelectorAll('#statusActiveCard .status-btn').forEach(b => {
+    b.classList.remove('sel-called','sel-silent','sel-reject');
+  });
+  btn.classList.add('sel-' + type);
+
+  // animate out and go next
+  const card = document.getElementById('statusActiveCard');
+  card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+  card.style.transform = 'translateX(-60px) scale(0.96)';
+  card.style.opacity = '0';
+
+  setTimeout(() => {
+    currentStatusIdx++;
+    if (currentStatusIdx >= pendingApplications.length) {
+      roundTarget    = pendingApplications.filter(a => a.status === 'reject').length;
+      newRejectCount = roundTarget;
+      funnelState = 'reviewed';
+      goToFunnel('✅', 'Статусы обновлены', 'Вот как изменилась воронка');
+    } else {
+      renderStatusCard();
+    }
+  }, 250);
+}
+
+// ─── ACCORDION ───
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  document.querySelectorAll('.accordion-header').forEach(h => {
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    header.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// ─── TOAST ───
+// ─── PREP SCREEN ───
+let prepVacIdx = 0;
+let prepList = [];
+
+function openPrepScreen() {
+  const pending = allApplications.filter(a => a.status === null || a.status === 'silent');
+  prepList = pending.length > 0 ? pending.map(a => a.vacancy) : vacancies.slice(0, 3);
+  prepVacIdx = 0;
+  renderPrepVac();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-prep').classList.add('active');
+  document.getElementById('screen-prep').scrollTop = 0;
+}
+
+function renderPrepVac() {
+  const total = prepList.length;
+  const v = prepList[prepVacIdx];
+  if (!v) return;
+
+  // progress
+  const showProgress = total > 1;
+  document.getElementById('prepProgressRow').style.display = showProgress ? '' : 'none';
+  document.getElementById('prepProgressBar').style.display = showProgress ? '' : 'none';
+  if (showProgress) {
+    document.getElementById('prepProgressLabel').textContent = `Вакансия ${prepVacIdx + 1} из ${total}`;
+    document.getElementById('prepProgressCount').textContent = `${prepVacIdx + 1} / ${total}`;
+    document.getElementById('prepProgressFill').style.width = ((prepVacIdx + 1) / total * 100) + '%';
+  }
+
+  // button label
+  const isLast = prepVacIdx >= total - 1;
+  document.getElementById('prepNextBtn').textContent = isLast ? 'Всё готово ✓' : 'Готов — следующая вакансия →';
+
+  // body
+  document.getElementById('prepBody').innerHTML = `
+    <div class="w-heading" style="margin-bottom:4px;">Тебе могут позвонить из ${v.company}</div>
+    <div class="w-subheading">Вот что скорее всего спросят и как ответить</div>
+
+    <div class="prep-company" style="margin-bottom:16px;">
+      <div class="prep-logo">${v.logo}</div>
+      <div>
+        <div class="prep-company-name">${v.title}</div>
+        <div class="prep-company-role">${v.company} · ${v.loc}</div>
+      </div>
+    </div>
+
+    ${(v.tips || []).map(t => `
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          «${t.q}»<span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div style="font-size:13px; color:#6B7280; line-height:1.6;">${t.a}</div>
+        </div>
+      </div>`).join('')}
+
+    <div class="contract-item" style="margin-top:14px; margin-bottom:20px;">
+      <div class="contract-item-icon" style="background:rgba(39,155,240,0.16);">📋</div>
+      <div class="contract-item-text">
+        <strong>Что взять на встречу</strong>
+        <p>Паспорт, СНИЛС, трудовая книжка (если есть). Оденься аккуратно — не нужно быть в костюме.</p>
+      </div>
+    </div>
+  `;
+}
+
+function nextPrepVac() {
+  prepVacIdx++;
+  if (prepVacIdx < prepList.length) {
+    document.getElementById('screen-prep').scrollTop = 0;
+    renderPrepVac();
+  } else {
+    if (funnelState === 'reviewed') {
+      goToFunnel(); // сохраняем заголовок — стратегия важнее
+    } else {
+      goToFunnel('📞', 'Ты готов к звонкам', 'Будь на связи — вот что сейчас в воронке');
+    }
+  }
+}
+
+function goBackFromPrep() {
+  // Назад из подготовки не меняет funnelState — пользователь просто посмотрел
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById('screen-day1');
+  s.classList.add('active');
+  s.scrollTop = 0;
+  updateFunnelFromStatuses();
+}
+
+// Filter cities input (visual only)
+function filterCities(val) {
+  const chips = document.querySelectorAll('#cityChips .chip');
+  chips.forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
